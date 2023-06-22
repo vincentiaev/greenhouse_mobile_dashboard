@@ -157,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements MqttCallback {
             }
             MqttMessage message = new MqttMessage();
             message.setPayload(payload.getBytes());
-            message.setQos(2);
+            message.setQos(0);
             message.setRetained(false);
             client.publish("btnState", message);
         } catch (Exception e){
