@@ -4,7 +4,10 @@ import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 
+import androidx.annotation.ColorInt;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.github.mikephil.charting.charts.LineChart;
@@ -25,11 +28,13 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity implements MqttCallback {
 
     MqttClient client = null;
+    String btnState;
 
     ArrayList<LineDataSet> flowDataSet;
 
     LineChart bc;
     LineChart ldrLC, soilLC, flowLC, humLC, tempLC;
+    Button on_btn, off_btn;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -47,6 +52,9 @@ public class MainActivity extends AppCompatActivity implements MqttCallback {
         ldrLC = findViewById(R.id.ldrLC);
         tempLC = findViewById(R.id.tempLC);
         humLC = findViewById(R.id.humLC);
+
+        on_btn = findViewById(R.id.on_btn);
+        off_btn = findViewById(R.id.off_btn);
 
 //        LineData data = new LineData(getLabel(10), getDummyDataSet());
 //        bc.setData(data);
@@ -91,6 +99,27 @@ public class MainActivity extends AppCompatActivity implements MqttCallback {
         lineChart.setVisibleXRangeMaximum(10);
         lineChart.moveViewToX(data.getEntryCount());
          */
+
+        on_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                btnState = "1";
+                off_btn.setBackgroundColor(R.color.purple_700);
+                on_btn.setBackgroundColor(Color.rgb(36, 120, 34));
+                publishMessage(btnState);
+            }
+        });
+
+        off_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                btnState = "0";
+                on_btn.setBackgroundColor(R.color.purple_700);
+                off_btn.setBackgroundColor(Color.rgb(135, 35, 37));
+                publishMessage(btnState);
+
+            }
+        });
     }
 
     private void connectToMQTTBroker() {
@@ -119,6 +148,22 @@ public class MainActivity extends AppCompatActivity implements MqttCallback {
             xLabel.add("n: " + Integer.toString(i + 1));
         }
         return xLabel;
+    }
+
+    public void publishMessage(String payload){
+        try {
+            if (!client.isConnected()) {
+                client.connect();
+            }
+            MqttMessage message = new MqttMessage();
+            message.setPayload(payload.getBytes());
+            message.setQos(2);
+            message.setRetained(false);
+            client.publish("btnState", message);
+        } catch (Exception e){
+            Log.d("Mqtt", e.toString());
+            e.printStackTrace();
+        }
     }
 
 //    private ArrayList getDummyDataSet() {
